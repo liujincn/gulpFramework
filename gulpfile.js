@@ -29,10 +29,20 @@ gulp.task('devCommonJs', function() {
     return gulp.src('./vendor/*.js')
         .pipe(concat('common.js'))    //合并所有js到common.js
         .pipe(uglify())    //压缩
-        .pipe(gulp.dest('./dev'));  //输出
+        .pipe(gulp.dest('./dev'))  //输出
+        .pipe(browserSync.reload({stream:true}))
+})
+
+//  合并css
+gulp.task('devCss',  function() {
+    return gulp.src('./css/*.css')
+        .pipe(concat('app.css')) //合并css
+        .pipe(gulp.dest('./dev'))
+        .pipe(browserSync.reload({stream:true}))
 })
 
 
+//
 gulp.task('devMainJs', function () {
     // 定义入口文件
     return browserify({
@@ -50,7 +60,9 @@ gulp.task('devMainJs', function () {
         .pipe(buffer())
         // 输出
         .pipe(uglify())    //压缩
-        .pipe(gulp.dest('./dev'));
+        .pipe(gulp.dest('./dev'))
+        .pipe(browserSync.reload({stream:true}));
+
 })
 
 
@@ -65,30 +77,33 @@ gulp.task('browser', function () {
         port:8000  // 指定访问服务器的端口号
     })
     gulp.watch('./*.html').on('change', browserSync.reload)
+    gulp.watch('./vendor/*.js',  gulp.series('devCommonJs'))
+    gulp.watch('./module/*.js',  gulp.series('devMainJs'))
+    gulp.watch('./css/*.css',  gulp.series('devCss'))
+
+
 })
 //  监听任务 浏览器自动刷新
 
 
 /*gulp.task('watch', function() {
-    w('./vendor/!*.js', 'DevCommonJs')
-    w('./module/!*.js', 'DevMainJs')
+    w('./vendor/*.js', 'devCommonJs')
+    w('./module/*.js', 'devMainJs')
 
     function w(path, task) {
         watch(path, function() {
-            //runSequence(task) // dev模式下 自定刷新页面
-            gulp.series(task)
+            gulp.start(task);
             browserSync.reload();
-
         })
     }
 })*/
 
 /*gulp.task('watch', function() {
-    gulp.watch('./vendor/!*.js',gulp.series('devCommonJs'))
-    gulp.watch('./module/!*.js',gulp.series('devMainJs'))
-})*/
+    //gulp.watch('./vendor/!*.js', ['devCommonJs'])
 
-gulp.task('dev', gulp.series('devCommonJs', 'devMainJs','browser','watch'));
+    //gulp.watch('./js/!*.js', ['devMainJs'])
+})*/
+gulp.task('dev', gulp.series('devCss','devCommonJs', 'devMainJs','browser'))
 
 
 /*
