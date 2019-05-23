@@ -4,7 +4,17 @@ var gulp = require('gulp'),
     concat = require('gulp-concat'),      //js合并
     browserify = require('browserify'),
     stream = require('vinyl-source-stream'),
-    buffer = require('vinyl-buffer');         //解决模块化
+    buffer = require('vinyl-buffer'),      //解决模块化
+    connect = require('gulp-connect'),    //  文件改变 自动刷新浏览器
+
+    browserSync=require('browser-sync'),    //自动打开浏览器
+
+    watch = require('gulp-watch'),      //监听
+    runSequence = require('run-sequence');    //任务顺序执行
+
+
+
+
 
 
 
@@ -15,16 +25,15 @@ var paths = {
 */
 
 // 第三方库的引用
-gulp.task('CommonJs', function() {
+gulp.task('devCommonJs', function() {
     return gulp.src('./vendor/*.js')
         .pipe(concat('common.js'))    //合并所有js到common.js
         .pipe(uglify())    //压缩
         .pipe(gulp.dest('./dev'));  //输出
-});
+})
 
 
-
-gulp.task('MainJs', function () {
+gulp.task('devMainJs', function () {
     // 定义入口文件
     return browserify({
         entries: 'js/app.js',
@@ -43,6 +52,44 @@ gulp.task('MainJs', function () {
         .pipe(uglify())    //压缩
         .pipe(gulp.dest('./dev'));
 })
+
+
+// 设置任务---架设静态服务器
+gulp.task('browser', function () {
+    browserSync.init({
+        server:{
+            files:['**'],
+            proxy:'localhost', // 设置本地服务器的地址
+            index:'index.html' // 指定默认打开的文件
+        },
+        port:8000  // 指定访问服务器的端口号
+    })
+    gulp.watch('./*.html').on('change', browserSync.reload)
+})
+//  监听任务 浏览器自动刷新
+
+
+/*gulp.task('watch', function() {
+    w('./vendor/!*.js', 'DevCommonJs')
+    w('./module/!*.js', 'DevMainJs')
+
+    function w(path, task) {
+        watch(path, function() {
+            //runSequence(task) // dev模式下 自定刷新页面
+            gulp.series(task)
+            browserSync.reload();
+
+        })
+    }
+})*/
+
+/*gulp.task('watch', function() {
+    gulp.watch('./vendor/!*.js',gulp.series('devCommonJs'))
+    gulp.watch('./module/!*.js',gulp.series('devMainJs'))
+})*/
+
+gulp.task('dev', gulp.series('devCommonJs', 'devMainJs','browser','watch'));
+
 
 /*
 
