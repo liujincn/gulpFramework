@@ -8,17 +8,17 @@
   },
   "author": "liujin",
   "license": "ISC",
-  "dependencies": {
-    "gulp": "^4.0.2"
-  },
+  "dependencies": {},
   "devDependencies": {
     "browser-sync": "^2.26.5",
     "browserify": "^16.2.3",
+    "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
     "gulp-connect": "^5.7.0",
     "gulp-htmlmin": "^5.0.1",
     "gulp-uglify": "^3.0.2",
     "gulp-watch": "^5.0.1",
+    "gulp.spritesmith": "^6.9.0",
     "run-sequence": "^2.2.1",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"

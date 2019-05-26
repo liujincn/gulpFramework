@@ -5,17 +5,14 @@ var gulp = require('gulp'),
     browserify = require('browserify'),
     stream = require('vinyl-source-stream'),
     buffer = require('vinyl-buffer'),      //解决模块化
-    connect = require('gulp-connect'),    //  文件改变 自动刷新浏览器
+    //connect = require('gulp-connect'),    //  文件改变 自动刷新浏览器
 
-    browserSync=require('browser-sync'),    //自动打开浏览器
+    browserSync = require('browser-sync'),    //自动打开浏览器
 
     watch = require('gulp-watch'),      //监听
-    runSequence = require('run-sequence');    //任务顺序执行
+    runSequence = require('run-sequence'),  //任务顺序执行
 
-
-
-
-
+    spritesmith = require('gulp.spritesmith');  // 雪碧图
 
 
 /*
@@ -25,24 +22,24 @@ var paths = {
 */
 
 // 第三方库的引用
-gulp.task('devCommonJs', function() {
+gulp.task('devCommonJs', function () {
     return gulp.src('./vendor/*.js')
         .pipe(concat('common.js'))    //合并所有js到common.js
         .pipe(uglify())    //压缩
         .pipe(gulp.dest('./dev'))  //输出
-        .pipe(browserSync.reload({stream:true}))
+        .pipe(browserSync.reload({stream: true}))
 })
 
 //  合并css
-gulp.task('devCss',  function() {
+gulp.task('devCss', function () {
     return gulp.src('./css/*.css')
         .pipe(concat('app.css')) //合并css
         .pipe(gulp.dest('./dev'))
-        .pipe(browserSync.reload({stream:true}))
+        .pipe(browserSync.reload({stream: true}))
 })
 
 
-//
+// 生成应用js
 gulp.task('devMainJs', function () {
     // 定义入口文件
     return browserify({
@@ -61,28 +58,76 @@ gulp.task('devMainJs', function () {
         // 输出
         .pipe(uglify())    //压缩
         .pipe(gulp.dest('./dev'))
-        .pipe(browserSync.reload({stream:true}));
+        .pipe(browserSync.reload({stream: true}));
 
 })
 
 
-// 设置任务---架设静态服务器
+
+
+// 生成雪碧图
+gulp.task('sprite', function () {
+    var spriteData = gulp.src('./icon/*.png')
+        .pipe(spritesmith({
+            imgName: 'sprite.png', // 生成的雪碧图的名称
+            cssName: '../css/sprite.css', // 生成css文件
+            imgPath: '../img/sprite.png', // 手动指定路径, 会直接出现在background属性的值中
+            padding: 5, // 小图之间的间距, 防止重叠
+            // css模板
+            cssTemplate: (data) => {
+                // data为对象，保存合成前小图和合成打大图的信息包括小图在大图之中的信息
+                let arr = [],
+                    width = data.spritesheet.px.width,
+                    height = data.spritesheet.px.height,
+                    url = data.spritesheet.image
+                arr.push(
+                    `.icon {
+                          display: inline-block;
+                          vertical-align: middle;
+                          background: url("${url}") no-repeat;
+                        }
+                    `);
+
+                data.sprites.forEach(function (sprite) {
+                    arr.push(
+                        `.i-${sprite.name} {
+                              width: ${sprite.px.width};
+                              height: ${sprite.px.height};
+                              background-position: ${sprite.px.offset_x} ${sprite.px.offset_y};
+                              background-size: ${sprite.px.width} ${sprite.px.height};
+                            }
+                        `);
+                });
+
+                return arr.join('');
+            }
+
+        }));
+
+    return spriteData.pipe(gulp.dest('./img'))
+
+})
+// 实现浏览器的热更新
 gulp.task('browser', function () {
     browserSync.init({
-        server:{
-            files:['**'],
-            proxy:'localhost', // 设置本地服务器的地址
-            index:'index.html' // 指定默认打开的文件
+        server: {
+            files: ['**'],
+            proxy: 'localhost', // 设置本地服务器的地址
+            index: 'index.html' // 指定默认打开的文件
         },
-        port:8000  // 指定访问服务器的端口号
+        port: 8000  // 指定访问服务器的端口号
     })
     gulp.watch('./*.html').on('change', browserSync.reload)
-    gulp.watch('./vendor/*.js',  gulp.series('devCommonJs'))
-    gulp.watch('./module/*.js',  gulp.series('devMainJs'))
-    gulp.watch('./css/*.css',  gulp.series('devCss'))
+    gulp.watch('./vendor/*.js', gulp.series('devCommonJs'))
+    gulp.watch('./module/*.js', gulp.series('devMainJs'))
+    gulp.watch('./icon/*.png', gulp.series('sprite'))
+
+    gulp.watch('./css/*.css', gulp.series('devCss'))
 
 
 })
+
+
 //  监听任务 浏览器自动刷新
 
 
@@ -103,7 +148,7 @@ gulp.task('browser', function () {
 
     //gulp.watch('./js/!*.js', ['devMainJs'])
 })*/
-gulp.task('dev', gulp.series('devCss','devCommonJs', 'devMainJs','browser'))
+gulp.task('dev', gulp.series('devCss', 'devCommonJs', 'devMainJs', 'browser'))
 
 
 /*
@@ -116,7 +161,6 @@ gulp.task('MainJs', function() {
 });
 
 */
-
 
 
 // 压缩页面html
