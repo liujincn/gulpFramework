@@ -20,6 +20,7 @@ ol, ul {
     height: 0;
     zoom: 1;
     visibility: hidden;
+
 }
 
 .layout {
@@ -31,9 +32,13 @@ ol, ul {
     height: 50px;
     background: #ccc
 }
-.logo{ text-align: center}
-.logo li{
-      display: inline-block;
+
+.logo {
+    text-align: center
+}
+
+.logo li {
+    display: inline-block;
 
 }
 
@@ -55,6 +60,10 @@ ol, ul {
     background: #aaa;
     height: 600px;
 }
-.footer{ text-align: center; padding-top: 20px;}
+
+.footer {
+    text-align: center;
+    padding-top: 20px;
+}
 
 
