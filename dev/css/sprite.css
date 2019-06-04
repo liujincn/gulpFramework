@@ -2,40 +2,42 @@
     display: inline-block;
     vertical-align: middle;
     background: url("../img/sprite.png") no-repeat;
+    width: 312px;
+    height: 271px;
 }
 .i-bbcs {
     width: 103px;
     height: 83px;
     background-position: 0px -93px;
-    background-size: 103px 83px;
+    
 }
 .i-god {
     width: 104px;
     height: 87px;
     background-position: -109px 0px;
-    background-size: 104px 87px;
+    
 }
 .i-lw {
     width: 94px;
     height: 88px;
     background-position: -218px 0px;
-    background-size: 94px 88px;
+    
 }
 .i-wow {
     width: 104px;
     height: 88px;
     background-position: 0px 0px;
-    background-size: 104px 88px;
+    
 }
 .i-x {
     width: 99px;
     height: 71px;
     background-position: -108px -93px;
-    background-size: 99px 71px;
+    
 }
 .i-yz {
     width: 85px;
     height: 90px;
     background-position: 0px -181px;
-    background-size: 85px 90px;
+    
 }
