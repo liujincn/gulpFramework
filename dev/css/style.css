@@ -40,7 +40,6 @@ ol, ul {
 .logo li {
     display: inline-block;
      text-indent: -9999px;
-
 }
 
 .content {
@@ -60,7 +59,7 @@ ol, ul {
     width: 70%;
     background: #aaa;
     height: 600px;
-    background: url("../img/company_logo.jpg");
+    background: url("/img/company_logo.jpg") ;
 }
 
 .footer {

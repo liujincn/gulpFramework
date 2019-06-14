@@ -14,18 +14,19 @@ var gulp = require('gulp'),
 
     tinypng_nokey = require('gulp-tinypng-nokey'),    //压缩图片
 
-    isCdn = false
+    isCdn = false,
+    isMobile = false
 
 
-// 第三方库的引用
+// 第三方库的引用 dev （gulp-concat，browser-sync，gulp-uglify）
 gulp.task('devVendorJs', function () {
     return gulp.src('./dev/vendor/*.js')
         .pipe(concat('vendor.js'))    //合并所有js到common.js
         .pipe(uglify())    //压缩
         .pipe(gulp.dest('./js'))  //输出
-        .pipe(reload({stream: true}))
+        .pipe(reload({stream: true}))    //浏览器刷新
 })
-
+//  build  （gulp-concat，gulp-uglify）
 gulp.task('buildVendorJs', function () {
     return gulp.src('./dev/vendor/*.js')
         .pipe(concat('vendor.js'))    //合并所有js到common.js
@@ -33,25 +34,33 @@ gulp.task('buildVendorJs', function () {
         .pipe(gulp.dest('./dist/js'))  //输出
 })
 
-//  css
+//  css dev（gulp-concat，browser-sync）
 gulp.task('devCss', function () {
     return gulp.src('./dev/css/*.css')
         .pipe(concat('app.css')) //合并css
         .pipe(gulp.dest('./css'))
         .pipe(reload({stream: true}))
 })
+
+//执行build css isCdn （gulp-autoprefixer，gulp-concat，gulp-if，gulp-cdnizer，gulp-clean-css，gulp-rev）
 gulp.task('buildCss', function () {
     return gulp.src('./dev/css/*.css')
         .pipe(plugins.autoprefixer({
-            browsers: ['>1%', 'last 2 versions'],
+            browsers: ['>1%', 'last 2 versions'], //  兼容浏览器范围
             cascade: true,
             remove: true
         }))
         .pipe(concat('app.css')) //合并css
 
+        .pipe(plugins.if(isCdn === false, cdnizer({
+                defaultCDNBase: '../',
+                //relativeRoot: 'css',
+                files: ['**/*.{gif,png,jpg}']
+            })
+        ))
         .pipe(plugins.if(isCdn === true, cdnizer({
                 defaultCDNBase: 'http://gulp.lj.dev.q1.com/dist/',
-                relativeRoot: 'css',
+                //relativeRoot: 'css',
                 files: ['**/*.{gif,png,jpg}']
             })
         ))
@@ -61,12 +70,12 @@ gulp.task('buildCss', function () {
         .pipe(plugins.rev.manifest())
         .pipe(gulp.dest('./dist/css'))
 })
-// 删除dist
+// 删除dist （del）
 gulp.task('del', function () {
     return del(['dist/**'])
 })
 
-// 应用js
+// 应用js   （browserify,vinyl-source-stream，vinyl-buffer,gulp-concat,vinyl-buffer，gulp-uglify，browser-sync）
 gulp.task('devAppJs', function () {
     // 定义入口文件
     return browserify({
@@ -88,6 +97,7 @@ gulp.task('devAppJs', function () {
         .pipe(reload({stream: true}));
 
 })
+//  build（browserify,vinyl-source-stream，vinyl-buffer,gulp-concat,vinyl-buffer，gulp-uglify）
 gulp.task('buildAppJs', function () {
     // 定义入口文件
     return browserify({
@@ -109,51 +119,69 @@ gulp.task('buildAppJs', function () {
 
 })
 
-// 生成雪碧图
+// 生成雪碧图(gulp.spritesmith)
 gulp.task('sprite', function () {
     var spriteData = gulp.src('./icon/*.png')
         .pipe(spritesmith({
             imgName: 'sprite.png', // 生成的雪碧图的名称
             cssName: '../dev/css/sprite.css', // 生成css文件
-            imgPath: '../img/sprite.png', // 手动指定路径, 会直接出现在background属性的值中
+            imgPath: '/img/sprite.png', // 指定路径
             padding: 5, // 小图之间的间距, 防止重叠
             // css模板
             cssTemplate: (data) => {
                 // data为对象，保存合成前小图和合成打大图的信息包括小图在大图之中的信息
                 let arr = [],
-                    width = data.spritesheet.px.width,
-                    height = data.spritesheet.px.height,
-                    url = data.spritesheet.image
+                    width = data.spritesheet.width,
+                    height = data.spritesheet.height,
+                    url = data.spritesheet.image,
+                    unit ='px'
+                if(isMobile) {
+                    width = width / 100
+                    height = height / 100
+                    unit = 'rem'
+                }
+
+
                 arr.push(`.icon {
     display: inline-block;
-    vertical-align: middle;
     background: url("${url}") no-repeat;
-    width: ${width};
-    height: ${height};
+    width: ${width}${unit};
+    height: ${height}${unit};
+    background-size:${width}${unit} ${height}${unit};
 }
 `);
                 data.sprites.forEach(function (sprite) {
+
+                    let posX = sprite.offset_x,
+                     posY = sprite.offset_y,
+                     iw = sprite.width,
+                     ih = sprite.height
+                    if(isMobile) {
+                        posX = posX / 100
+                        posY = posY / 100
+                        iw = iw / 100
+                        ih = ih / 100
+                    }
+
                     arr.push(`.i-${sprite.name} {
-    width: ${sprite.px.width};
-    height: ${sprite.px.height};
-    background-position: ${sprite.px.offset_x} ${sprite.px.offset_y};
-    
+    width: ${iw}${unit};
+    height: ${ih}${unit};
+    background-position:${posX}${unit} ${posY}${unit};
 }
 `);
                 });
                 return arr.join('');
             }
-
         }));
-
     return spriteData.pipe(gulp.dest('./img'))
+        .pipe(reload({stream: true}))
 
 })
-// 实现浏览器的热更新
+// 实现浏览器的热更新  (browser-sync,gulp-watch,series)
 gulp.task('browser', function () {
     browserSync.init({
         server: {
-            files: ['**'],
+            //files: ['**'],
             proxy: 'localhost', // 设置本地服务器的地址
             index: 'index.html' // 指定默认打开的文件
         },
@@ -167,17 +195,17 @@ gulp.task('browser', function () {
 
 
 })
-//压缩图片
-gulp.task('mini', function () {
+//压缩图片 并生成manifest(gulp-tinypng-nokey,gulp-rev)
+gulp.task('tiny', function () {
     return gulp.src('./img/*.{png,jpg,gif}')
-        //.pipe(tinypng_nokey())
+    //.pipe(tinypng_nokey())
         .pipe(plugins.rev())
         .pipe(gulp.dest('dist/img'))
         .pipe(plugins.rev.manifest())
         .pipe(gulp.dest('dist/img'))
 })
 
-// 压缩页面html
+// 压缩页面html (gulp-htmlmin,gulp-if,gulp-cdnizer)
 gulp.task('html', function () {
     var options = {
         removeComments: true,//清除HTML注释
@@ -190,35 +218,48 @@ gulp.task('html', function () {
         minifyCSS: true//压缩页面CSS
     }
     return gulp.src('./*.html')
-        .pipe(htmlmin(options))
-        .pipe(plugins.if(isCdn === true, cdnizer({
-                defaultCDNBase: 'http://gulp.lj.dev.q1.com/dist/',
-                files: ['**/*.{css,js,gif,png,jpg}']
-            })
+        .pipe(htmlmin(options))    //页面压缩
+        .pipe(plugins.if(isCdn === true, cdnizer([      // cdn配置
+                {
+                    file: '**/*.js',
+                    cdn: 'http://gulp.lj.dev.q1.com/dist/js/${ filename }'
+                },
+
+                {
+                    file: '**/*.css',
+                    cdn: 'http://gulp.lj.dev.q1.com/dist/css/${ filename }'
+                },
+                {
+                    file: '**/*.{gif,png,jpg}',
+                    cdn: "http://gulp.lj.dev.q1.com/dist/img/${ filename }"
+                }]
+            )
         ))
         .pipe(gulp.dest('dist/'))
 })
-
+//  js 生成manifest(gulp-clean,gulp-rev)
 gulp.task('revJs', function () {
     return gulp.src('./dist/js/*.js')
+        //del()
+        .pipe(plugins.clean())
         .pipe(plugins.rev())
         .pipe(gulp.dest('dist/js'))
         .pipe(plugins.rev.manifest())
         .pipe(gulp.dest('dist/js'))
 })
 
-
-gulp.task('revHtml',function(){
-    return gulp.src(['./dist/**/*.json','./dist/*.html'])
-        .pipe(plugins.revCollector({replaceReved:true}))
+//html revCollector 替换(gulp-rev-collector,)
+gulp.task('revHtml', function () {
+    return gulp.src(['./dist/**/*.json', './dist/*.html'])
+        .pipe(plugins.revCollector({replaceReved: true}))
         .pipe(gulp.dest('dist/')); //html更换css,js文件版本，更改完成之后保存的地址
 })
-
-gulp.task('revCss', function() {
+//css revCollector 替换  (gulp-rev-collector,)
+gulp.task('revCss', function () {
     return gulp.src(['./dist/img/*.json', './dist/css/*.css']) //- 读取 rev-manifest.json 文件以及需要进行替换的图片
-        .pipe(plugins.revCollector({replaceReved:true})) //- 执行文件内图片名的替换
+        .pipe(plugins.revCollector({replaceReved: true})) //- 执行文件内图片名的替换
         .pipe(gulp.dest('dist/css')); //- 替换后的文件输出的目录
 });
 
 gulp.task('dev', gulp.series('devCss', 'devVendorJs', 'devAppJs', 'sprite', 'browser'))
-gulp.task('build', gulp.series('del', 'buildCss', 'buildVendorJs', 'buildAppJs', 'mini','revCss','revJs','html','revHtml'))
+gulp.task('build', gulp.series('del', 'buildCss', 'buildVendorJs', 'buildAppJs', 'tiny', 'revCss', 'revJs', 'html', 'revHtml'))

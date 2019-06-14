@@ -1,45 +1,39 @@
 .icon {
     display: inline-block;
-    vertical-align: middle;
-    background: url("../img/sprite.png") no-repeat;
+    background: url("/img/sprite.png") no-repeat;
     width: 312px;
     height: 271px;
+    background-size:312px 271px;
 }
 .i-bbcs {
     width: 103px;
     height: 83px;
-    background-position: 0px -93px;
-    
+    background-position:0px -93px;
 }
 .i-god {
     width: 104px;
     height: 87px;
-    background-position: -109px 0px;
-    
+    background-position:-109px 0px;
 }
 .i-lw {
     width: 94px;
     height: 88px;
-    background-position: -218px 0px;
-    
+    background-position:-218px 0px;
 }
 .i-wow {
     width: 104px;
     height: 88px;
-    background-position: 0px 0px;
-    
+    background-position:0px 0px;
 }
 .i-x {
     width: 99px;
     height: 71px;
-    background-position: -108px -93px;
-    
+    background-position:-108px -93px;
 }
 .i-yz {
     width: 85px;
     height: 90px;
-    background-position: 0px -181px;
-    
+    background-position:0px -181px;
 }
 
 body, html {
@@ -84,7 +78,6 @@ ol, ul {
 .logo li {
     display: inline-block;
      text-indent: -9999px;
-
 }
 
 .content {
@@ -104,7 +97,7 @@ ol, ul {
     width: 70%;
     background: #aaa;
     height: 600px;
-    background: url("../img/company_logo.jpg");
+    background: url("/img/company_logo.jpg") ;
 }
 
 .footer {
