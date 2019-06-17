@@ -198,7 +198,7 @@ gulp.task('browser', function () {
 //压缩图片 并生成manifest(gulp-tinypng-nokey,gulp-rev)
 gulp.task('tiny', function () {
     return gulp.src('./img/*.{png,jpg,gif}')
-    //.pipe(tinypng_nokey())
+        .pipe(tinypng_nokey())
         .pipe(plugins.rev())
         .pipe(gulp.dest('dist/img'))
         .pipe(plugins.rev.manifest())
