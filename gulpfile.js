@@ -14,6 +14,8 @@ var gulp = require('gulp'),
 
     tinypng_nokey = require('gulp-tinypng-nokey'),    //压缩图片
 
+    sourcemaps  = require('gulp-sourcemaps'),   //查看与调试
+
     isCdn = false,
     isMobile = false
 
@@ -84,15 +86,16 @@ gulp.task('devAppJs', function () {
     })
     // 转成node readabel stream流，拥有pipe方法（stream流分小片段传输）
         .bundle()
+
         // 转成gulp系的stream流，node系只有content，添加名字
         .pipe(stream('app.js'))
         // 转成二进制的流（二进制方式整体传输）
-        .pipe(buffer()) .on('error', function (error) {
-            console.log(error.toString())
-        })
-        .pipe(plugins.sourcemaps.init({loadMaps: true}))
+        .pipe(buffer())
+        .pipe(sourcemaps.init({loadMaps: true}))
         // 输出
-        .pipe(uglify())    //压缩
+        .pipe(uglify()) .on('error', function (error) {
+            console.log(error.toString())
+        })    //压缩
         .pipe(plugins.sourcemaps.write('./'))
         .pipe(gulp.dest('./js'))
         .pipe(reload({stream: true}));
